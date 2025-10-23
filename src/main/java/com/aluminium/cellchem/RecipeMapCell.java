@@ -127,6 +127,9 @@ public abstract class RecipeMapCell {
                     removals1.add(fluid);
                     cellcount -= item.getCount();
                 }
+                else {
+                    fluid.amount *= multiplier;
+                }
                 j++;
             }
             for (FluidStack removal : removals1) outputs.remove(removal);
@@ -152,7 +155,7 @@ public abstract class RecipeMapCell {
 
             Recipe recipe1 = new Recipe(inputs4, outputs1, outputs2, inputs3, outputs, outputs3, recipe.getDuration() * multiplier, recipe.getEUt(), recipe.isHidden(), recipe.getIsCTRecipe(), recipe.getRecipePropertyStorage(), recipe.getRecipeCategory());
 
-            CellChemistry.LOGGER.info("new recipe: {}, {}, {}", multiplier, cellchem$inputs, recipe1);
+//            CellChemistry.LOGGER.info("new recipe: {}, {}, {}", multiplier, cellchem$inputs, recipe1);
 
             return recipe1;
         }
