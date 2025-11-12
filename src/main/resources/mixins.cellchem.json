@@ -1,14 +1,14 @@
 {
-	"package": "com.aluminium.cellchem.mixins",
+	"package": "cellchem.mixins",
 	"required": true,
 	"refmap": "mixins.cellchem.refmap.json",
 	"target": "@env(DEFAULT)",
 	"minVersion": "0.8.5",
 	"compatibilityLevel": "JAVA_8",
 	"mixins": [
-		"AbstractRecipeLogicMixin",
-		"RecipeMixin",
-		"SimpleMachineMetaTileEntityMixin"
+      "AbstractRecipeLogicMixin",
+      "RecipeMixin",
+      "SimpleMachineMetaTileEntityMixin"
 	],
 	"server": [],
 	"client": []
