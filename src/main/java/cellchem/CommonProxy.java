@@ -2,8 +2,10 @@ package cellchem;
 
 import cellchem.items.CellCircuit;
 import cellchem.items.CellCircuitPart;
+import cellchem.recipes.CellRecipeMap;
 import com.aluminium.cellchem.Tags;
 import net.minecraft.item.Item;
+import net.minecraft.item.crafting.IRecipe;
 import net.minecraftforge.client.event.ModelRegistryEvent;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -27,6 +29,11 @@ public class CommonProxy {
 
 //        registry.register(cell);
         registry.register(cellCircuitPart);
+    }
+
+    @SubscribeEvent
+    public static void registerRecipes(RegistryEvent.Register<IRecipe> event) {
+        CellRecipeMap.init();
     }
 
     public void preInit() {

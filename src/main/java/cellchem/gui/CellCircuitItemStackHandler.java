@@ -55,7 +55,7 @@ public class CellCircuitItemStackHandler extends GhostCircuitItemStackHandler {
         }
     }
 
-    static void setCellStack(ItemStack[] cellStack, int value) {
+    public static void setCellStack(ItemStack[] cellStack, int value) {
         for (int i = 0; i < 16; i++) {
 //            cellStack[i] = CellCircuitPart.items[(value & 1) == 1 ? i : i + 16];
             cellStack[i] = new ItemStack(CommonProxy.cellCircuitPart, 1, (value & 1) == 1 ? i : i + 16);

@@ -87,7 +87,7 @@ public class RecipeMixin {
                 }
             }
         }
-        CellChemistry.LOGGER.info(ReflectionToStringBuilder.toString(fluids));
+//        CellChemistry.LOGGER.info(ReflectionToStringBuilder.toString(fluids));
         return new FluidTankList(false, fluidInputs, fluids.toArray(new IFluidTank[0]));
     }
 }
