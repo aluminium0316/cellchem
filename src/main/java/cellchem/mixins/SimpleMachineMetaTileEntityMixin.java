@@ -3,7 +3,10 @@ package cellchem.mixins;
 import cellchem.IHasCellCircuitInventory;
 import cellchem.gui.CellCircuitItemStackHandler;
 import cellchem.gui.CellCircuitSlotWidget;
+import cellchem.recipes.CellRecipeMap;
+import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import gregtech.api.capability.impl.GhostCircuitItemStackHandler;
+import gregtech.api.capability.impl.ItemHandlerList;
 import gregtech.api.cover.CoverHolder;
 import gregtech.api.gui.GuiTextures;
 import gregtech.api.gui.ModularUI;
@@ -17,8 +20,8 @@ import gregtech.api.recipes.RecipeMap;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.text.TextComponentTranslation;
+import net.minecraftforge.items.IItemHandlerModifiable;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -26,17 +29,27 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
+import java.util.Arrays;
+
 @Mixin(value = SimpleMachineMetaTileEntity.class, remap = false)
 public abstract class SimpleMachineMetaTileEntityMixin implements ISyncedTileEntity, CoverHolder, IVoidable, IHasCellCircuitInventory {
-    @Shadow protected abstract ModularUI.Builder createGuiTemplate(EntityPlayer player);
+//    @Shadow protected abstract ModularUI.Builder createGuiTemplate(EntityPlayer player);
 
     @Unique
     public CellCircuitItemStackHandler cellchem$cellInventory;
+    @Unique
+    public Boolean cellchem$hasCellCircuitInventory = null;
 
     @Unique
     @Override
-    public boolean cellchem$hasCellCircuitInventory() {
-        return true;
+    public boolean cellchem$isHasCellCircuitInventory() {
+//        SimpleMachineMetaTileEntityResizable
+        RecipeMap<?> recipeMap = ((SimpleMachineMetaTileEntity) (Object) this).getRecipeMap();
+        if (cellchem$hasCellCircuitInventory == null && recipeMap != null) {
+            cellchem$hasCellCircuitInventory = CellRecipeMap.CELL_RECIPES.get(recipeMap.getUnlocalizedName()) != null;
+        }
+//        CellChemistry.LOGGER.info("{}\t{}\t{}", cellchem$hasCellCircuitInventory, recipeMap, CellRecipeMap.CELL_RECIPES);
+        return cellchem$hasCellCircuitInventory != null && cellchem$hasCellCircuitInventory;
     }
 
     @Unique
@@ -81,9 +94,22 @@ public abstract class SimpleMachineMetaTileEntityMixin implements ISyncedTileEnt
         widget.setTooltipText("gregtech.gui.configurator_slot.tooltip", configString);
     }
 
+//    @Inject(method = "<init>(Lnet/minecraft/util/ResourceLocation;Lgregtech/api/recipes/RecipeMap;Lgregtech/client/renderer/ICubeRenderer;IZLjava/util/function/Function;Lgregtech/client/particle/IMachineParticleEffect;Lgregtech/client/particle/IMachineParticleEffect;)V", at = @At(value = "HEAD"))
+//    private static RecipeMap<?> init(RecipeMap<?> recipeMap) {
+//        return CellRecipeMap.CELL_RECIPES.getOrDefault(recipeMap.hashCode(), recipeMap);
+//    }
+
+    @ModifyReturnValue(method = "getImportItems", at = @At("RETURN"), remap = false)
+    IItemHandlerModifiable cellchem$getImportItems(IItemHandlerModifiable original) {
+        if (this.cellchem$isHasCellCircuitInventory()) {
+            return new ItemHandlerList(Arrays.asList(original, cellchem$getCellInventory()));
+        }
+        return original;
+    }
+
     @Inject(method = "initializeInventory", at = @At("TAIL"), remap = false)
     void cellchem$initializeInventory(CallbackInfo ci) {
-        if (this.cellchem$hasCellCircuitInventory()) {
+        if (this.cellchem$isHasCellCircuitInventory()) {
             this.cellchem$cellInventory = new CellCircuitItemStackHandler((MetaTileEntity) (Object) this);
             this.cellchem$cellInventory.addNotifiableMetaTileEntity((MetaTileEntity) (Object) this);
         }

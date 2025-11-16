@@ -90,6 +90,11 @@ public class CellCircuitItemStackHandler extends GhostCircuitItemStackHandler {
         return 16;
     }
 
+    @Override
+    public int getSlots() {
+        return 16;
+    }
+
     @NotNull
     @Override
     public ItemStack getStackInSlot(int slot) {

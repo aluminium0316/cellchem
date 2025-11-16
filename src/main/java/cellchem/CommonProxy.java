@@ -37,7 +37,7 @@ public class CommonProxy {
     }
 
     public void preInit() {
-
+        Config.init();
     }
 
     @Mod.EventBusSubscriber(Side.CLIENT)

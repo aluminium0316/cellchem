@@ -1,98 +1,35 @@
 package cellchem.recipes;
 
-import cellchem.CellChemistry;
-import cellchem.CommonProxy;
-import cellchem.RecipeMapCell;
+import cellchem.Config;
 import cellchem.gui.CellCircuitItemStackHandler;
 import gregtech.api.capability.IFilter;
-import gregtech.api.capability.impl.FluidTankList;
 import gregtech.api.capability.impl.GTSimpleFluidHandlerItemStack;
-import gregtech.api.gui.ModularUI;
-import gregtech.api.gui.widgets.SlotWidget;
-import gregtech.api.recipes.FluidCellInput;
 import gregtech.api.recipes.RecipeBuilder;
 import gregtech.api.recipes.RecipeMap;
-import gregtech.api.recipes.RecipeMaps;
-import gregtech.api.recipes.builders.SimpleRecipeBuilder;
-import gregtech.api.recipes.chance.output.ChancedOutput;
 import gregtech.api.recipes.chance.output.impl.ChancedFluidOutput;
 import gregtech.api.recipes.chance.output.impl.ChancedItemOutput;
-import gregtech.api.recipes.ingredients.GTRecipeFluidInput;
 import gregtech.api.recipes.ingredients.GTRecipeInput;
-import gregtech.api.recipes.ingredients.GTRecipeItemInput;
-import gregtech.api.recipes.machines.RecipeMapCokeOven;
 import gregtech.common.items.MetaItems;
-import net.minecraft.item.Item;
+import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.NonNullList;
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidHandlerItem;
-import net.minecraftforge.items.IItemHandlerModifiable;
-import net.minecraftforge.items.ItemStackHandler;
-import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.function.Consumer;
 
-import static cellchem.RecipeMapCell.lcm;
 import static cellchem.RecipeMapCell.gcd;
 
 public class CellRecipeMap<T extends RecipeBuilder<T>> extends RecipeMap<T> {
     public CellRecipeMap(@NotNull String unlocalizedName, int maxInputs, int maxOutputs, int maxFluidInputs, int maxFluidOutputs, @NotNull T defaultRecipeBuilder, boolean isHidden) {
         super(unlocalizedName, maxInputs, maxOutputs, maxFluidInputs, maxFluidOutputs, defaultRecipeBuilder, isHidden);
-    }
-
-    static class ItemStackHandler1 implements IItemHandlerModifiable {
-        int count;
-        IItemHandlerModifiable itemStackHandler;
-
-        ItemStackHandler1(IItemHandlerModifiable itemStackHandler) {
-            this.itemStackHandler = itemStackHandler;
-        }
-
-        ItemStackHandler1 setCount(int count) {
-            this.count = count;
-            return this;
-        }
-
-        @Override
-        public int getSlots() {
-            itemStackHandler.getSlots();
-            return count + 16;
-        }
-
-        @Override
-        public @NotNull ItemStack getStackInSlot(int slot) {
-            return itemStackHandler.getStackInSlot(slot);
-        }
-
-        @Override
-        public @NotNull ItemStack insertItem(int slot, @NotNull ItemStack stack, boolean simulate) {
-            return itemStackHandler.insertItem(slot, stack, simulate);
-        }
-
-        @Override
-        public @NotNull ItemStack extractItem(int slot, int amount, boolean simulate) {
-            return itemStackHandler.extractItem(slot, amount, simulate);
-        }
-
-        @Override
-        public int getSlotLimit(int slot) {
-            return itemStackHandler.getSlotLimit(slot);
-        }
-
-        @Override
-        public void setStackInSlot(int slot, @NotNull ItemStack stack) {
-            itemStackHandler.setStackInSlot(slot, stack);
-        }
     }
 
     public static <T extends RecipeBuilder<T>> RecipeMap<T> cloneRecipeMap(RecipeMap<T> recipeMap) {
@@ -235,8 +172,13 @@ public class CellRecipeMap<T extends RecipeBuilder<T>> extends RecipeMap<T> {
 //                    CellChemistry.LOGGER.info(copy.getFluid());
                 }
 
-                builder.inputs(circuit(i, fluidOutputs.size()));
+                for (ItemStack item : circuit(i, fluidOutputs.size())) {
+                    builder.notConsumable(item);
+                }
                 builder.duration(builder.getDuration() * multiplier);
+                if (Config.hidden) {
+                    builder.hidden();
+                }
 
                 if (
                         builder.getOutputs().size() + builder.getChancedOutputs().size() <= recipe.getMaxOutputs() && builder.getInputs().size() <= recipe.getMaxInputs() && builder.getFluidInputs().size() <= recipe.getMaxFluidInputs() && builder.getFluidOutputs().size() + builder.getChancedFluidOutputs().size() <= recipe.getMaxFluidOutputs() && builder.getOutputs().size() + builder.getFluidOutputs().size() + builder.getChancedFluidOutputs().size() + builder.getChancedOutputs().size() != 0
@@ -246,10 +188,12 @@ public class CellRecipeMap<T extends RecipeBuilder<T>> extends RecipeMap<T> {
             }
         }
 
-        recipeBuilder.inputs(circuit(0, fluidOutputs.size()));
+        for (ItemStack item : circuit(0, fluidOutputs.size())) {
+            recipeBuilder.notConsumable(item);
+        }
     }
 
-    public static List<RecipeMap<?>> CELL_RECIPES = new ArrayList<>();
+    public static HashMap<String, RecipeMap<?>> CELL_RECIPES = new HashMap<>();
 
     static <T extends RecipeBuilder<T>> void initRecipeMap(RecipeMap<T> recipeMap) {
         Consumer<T> tmp;
@@ -264,7 +208,7 @@ public class CellRecipeMap<T extends RecipeBuilder<T>> extends RecipeMap<T> {
         RecipeMap<?> recipe = cloneRecipeMap(recipeMap);
 //                .setSmallRecipeMap(recipeMap)
         recipe.onRecipeBuild(recipeBuilder -> cellRecipe(recipeBuilder, recipe));
-        CELL_RECIPES.add(recipe);
+        CELL_RECIPES.put(recipeMap.getUnlocalizedName(), recipe);
 
         recipeMap.onRecipeBuild(recipeBuilder -> {
             if (tmp != null) tmp.accept(recipeBuilder);
@@ -283,11 +227,13 @@ public class CellRecipeMap<T extends RecipeBuilder<T>> extends RecipeMap<T> {
     }
 
     public static void init() {
-        initRecipeMap(RecipeMaps.CHEMICAL_RECIPES);
-        initRecipeMap(RecipeMaps.AUTOCLAVE_RECIPES);
-        initRecipeMap(RecipeMaps.ELECTROLYZER_RECIPES);
-        initRecipeMap(RecipeMaps.MIXER_RECIPES);
-        initRecipeMap(RecipeMaps.CENTRIFUGE_RECIPES);
-//        RecipeBuilder
+//        initRecipeMap(RecipeMaps.CHEMICAL_RECIPES);
+//        initRecipeMap(RecipeMaps.AUTOCLAVE_RECIPES);
+//        initRecipeMap(RecipeMaps.ELECTROLYZER_RECIPES);
+//        initRecipeMap(RecipeMaps.MIXER_RECIPES);
+//        initRecipeMap(RecipeMaps.CENTRIFUGE_RECIPES);
+        for (RecipeMap<?> name1 : Config.recipeMap) {
+            initRecipeMap(name1);
+        }
     }
 }
