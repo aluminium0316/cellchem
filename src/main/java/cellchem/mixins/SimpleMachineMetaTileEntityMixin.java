@@ -1,5 +1,6 @@
 package cellchem.mixins;
 
+import cellchem.CellChemistry;
 import cellchem.IHasCellCircuitInventory;
 import cellchem.gui.CellCircuitItemStackHandler;
 import cellchem.gui.CellCircuitSlotWidget;
@@ -14,6 +15,7 @@ import gregtech.api.gui.resources.TextureArea;
 import gregtech.api.gui.widgets.SlotWidget;
 import gregtech.api.metatileentity.IVoidable;
 import gregtech.api.metatileentity.MetaTileEntity;
+import gregtech.api.metatileentity.MetaTileEntityHolder;
 import gregtech.api.metatileentity.SimpleMachineMetaTileEntity;
 import gregtech.api.metatileentity.interfaces.ISyncedTileEntity;
 import gregtech.api.recipes.RecipeMap;
@@ -89,6 +91,7 @@ public abstract class SimpleMachineMetaTileEntityMixin implements ISyncedTileEnt
                 }
             }
             configString = builder.toString();
+//            CellChemistry.LOGGER.info(value);
         }
 
         widget.setTooltipText("gregtech.gui.configurator_slot.tooltip", configString);
@@ -110,19 +113,21 @@ public abstract class SimpleMachineMetaTileEntityMixin implements ISyncedTileEnt
     @Inject(method = "initializeInventory", at = @At("TAIL"), remap = false)
     void cellchem$initializeInventory(CallbackInfo ci) {
         if (this.cellchem$isHasCellCircuitInventory()) {
+//            CellChemistry.LOGGER.info();
             this.cellchem$cellInventory = new CellCircuitItemStackHandler((MetaTileEntity) (Object) this);
             this.cellchem$cellInventory.addNotifiableMetaTileEntity((MetaTileEntity) (Object) this);
+            markDirty();
         }
     }
 
-    @Inject(method = "writeToNBT", at = @At("TAIL"), remap = false)
+    @Inject(method = "writeToNBT", at = @At("TAIL"))
     void cellchem$writeToNBT(NBTTagCompound data, CallbackInfoReturnable<NBTTagCompound> cir) {
         if (this.cellchem$cellInventory != null) {
             this.cellchem$cellInventory.write(data);
         }
     }
 
-    @Inject(method = "readFromNBT", at = @At("TAIL"), remap = false)
+    @Inject(method = "readFromNBT", at = @At("TAIL"))
     void cellchem$readFromNBT(NBTTagCompound data, CallbackInfo ci) {
         if (this.cellchem$cellInventory != null) {
             this.cellchem$cellInventory.read(data);

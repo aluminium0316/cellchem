@@ -176,9 +176,9 @@ public class CellRecipeMap<T extends RecipeBuilder<T>> extends RecipeMap<T> {
                     builder.notConsumable(item);
                 }
                 builder.duration(builder.getDuration() * multiplier);
-                if (Config.hidden) {
-                    builder.hidden();
-                }
+//                if (Config.hidden) {
+//                    builder.hidden();
+//                }
 
                 if (
                         builder.getOutputs().size() + builder.getChancedOutputs().size() <= recipe.getMaxOutputs() && builder.getInputs().size() <= recipe.getMaxInputs() && builder.getFluidInputs().size() <= recipe.getMaxFluidInputs() && builder.getFluidOutputs().size() + builder.getChancedFluidOutputs().size() <= recipe.getMaxFluidOutputs() && builder.getOutputs().size() + builder.getFluidOutputs().size() + builder.getChancedFluidOutputs().size() + builder.getChancedOutputs().size() != 0

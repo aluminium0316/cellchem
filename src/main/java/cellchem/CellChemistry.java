@@ -14,6 +14,8 @@ import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.common.network.NetworkRegistry;
+import net.minecraftforge.fml.common.network.simpleimpl.SimpleNetworkWrapper;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 import net.minecraftforge.registries.IForgeRegistry;
 import org.apache.logging.log4j.LogManager;
@@ -24,6 +26,7 @@ import org.apache.logging.log4j.Logger;
 public class CellChemistry {
 
     public static final Logger LOGGER = LogManager.getLogger(Tags.MOD_NAME);
+    public static final SimpleNetworkWrapper INSTANCE = NetworkRegistry.INSTANCE.newSimpleChannel(Tags.MOD_ID);
 
 
     @SidedProxy(clientSide = "cellchem.CommonProxy$ClientProxy", serverSide = "cellchem.CommonProxy$ServerProxy")

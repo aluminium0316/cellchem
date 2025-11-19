@@ -2,6 +2,7 @@ package cellchem.gui;
 
 import cellchem.CellChemistry;
 import cellchem.items.CellCircuit;
+import cellchem.items.CellCircuitPart;
 import gregtech.api.capability.impl.GhostCircuitItemStackHandler;
 import gregtech.api.gui.IRenderContext;
 import gregtech.api.gui.resources.IGuiTexture;
@@ -11,12 +12,32 @@ import gregtech.client.utils.TooltipHelper;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
+import net.minecraft.network.PacketBuffer;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
 
 import java.lang.reflect.Field;
+import java.util.UUID;
 
 public class CellCircuitSlotWidget extends GhostCircuitSlotWidget {
     public CellCircuitSlotWidget(GhostCircuitItemStackHandler circuitInventory, int slotIndex, int xPosition, int yPosition) {
         super(circuitInventory, slotIndex, xPosition, yPosition);
+        writeUpdateInfo(4, buf -> buf.writeVarInt(circuitInventory.getCircuitValue()));
+    }
+
+    @Override
+    public void readUpdateInfo(int id, PacketBuffer buffer) {
+        super.readUpdateInfo(id, buffer);
+        if (id == 4) {
+            try {
+                Field circuitInventory = GhostCircuitSlotWidget.class.getDeclaredField("circuitInventory");
+                circuitInventory.setAccessible(true);
+
+                ((CellCircuitItemStackHandler) circuitInventory.get(this)).setCircuitValue(buffer.readVarInt());
+            } catch (NoSuchFieldException | IllegalAccessException e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 
     @Override
@@ -95,6 +116,30 @@ public class CellCircuitSlotWidget extends GhostCircuitSlotWidget {
             throw new RuntimeException(e);
         }
     }
+
+    @Override
+    public void detectAndSendChanges() {
+        super.detectAndSendChanges();
+
+        boolean changed;
+        int value;
+
+        try {
+            Field circuitInventory = GhostCircuitSlotWidget.class.getDeclaredField("circuitInventory");
+            circuitInventory.setAccessible(true);
+            value = ((CellCircuitItemStackHandler) circuitInventory.get(this)).getCircuitValue();
+            changed = ((CellCircuitItemStackHandler) circuitInventory.get(this)).changed();
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+
+        if (changed) {
+            writeUpdateInfo(4, buf -> {
+                buf.writeVarInt(value);
+            });
+        }
+    }
+
 
     private int getNextValue(boolean increment) {
         try {
