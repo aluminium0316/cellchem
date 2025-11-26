@@ -17,6 +17,9 @@ public class Config {
         "gregtech.api.recipes.RecipeMaps.CENTRIFUGE_RECIPES"
     };
 
+    @net.minecraftforge.common.config.Config.RequiresMcRestart
+    public static boolean hidden = true;
+
     @net.minecraftforge.common.config.Config.Ignore
     public static RecipeMap<?>[] recipeMap;
     static void init() {

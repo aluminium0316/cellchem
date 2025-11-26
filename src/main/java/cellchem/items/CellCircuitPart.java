@@ -25,7 +25,7 @@ public class CellCircuitPart extends Item {
 
     public CellCircuitPart() {
         this.setRegistryName(Tags.MOD_ID, "cell_circuit_part");
-        this.setCreativeTab(CreativeTabs.MISC);
+        this.setTranslationKey(Tags.MOD_ID + ".cell_circuit_part");
     }
 
     @Override

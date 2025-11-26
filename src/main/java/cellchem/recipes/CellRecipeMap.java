@@ -33,7 +33,7 @@ public class CellRecipeMap<T extends RecipeBuilder<T>> extends RecipeMap<T> {
     }
 
     public static <T extends RecipeBuilder<T>> RecipeMap<T> cloneRecipeMap(RecipeMap<T> recipeMap) {
-        return new CellRecipeMap<>(recipeMap.unlocalizedName + "_cell", recipeMap.getMaxInputs() + 16, recipeMap.getMaxOutputs(), recipeMap.getMaxFluidInputs(), recipeMap.getMaxFluidOutputs(), recipeMap.recipeBuilder().copy(), recipeMap.isHidden);
+        return new CellRecipeMap<>(recipeMap.unlocalizedName + "_cell", recipeMap.getMaxInputs() + 16, recipeMap.getMaxOutputs(), recipeMap.getMaxFluidInputs(), recipeMap.getMaxFluidOutputs(), recipeMap.recipeBuilder().copy(), Config.hidden);
     }
 
     static ItemStack[] circuit(int value, int count) {
@@ -145,7 +145,12 @@ public class CellRecipeMap<T extends RecipeBuilder<T>> extends RecipeMap<T> {
                         ItemStack cell = forcedFilledCell(fluidInputs.get(j).getInputFluidStack().getFluid(), count);
 
                         cellcount += count;
-                        builder.inputs(cell);
+                        if (fluidInputs.get(j).isNonConsumable()) {
+                            builder.notConsumable(cell);
+                        }
+                        else {
+                            builder.inputs(cell);
+                        }
                     } else {
                         GTRecipeInput fluidInput = fluidInputs.get(j);
                         builder.fluidInputs(fluidInput.copyWithAmount(fluidInput.getAmount() * multiplier));
